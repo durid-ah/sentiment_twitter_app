@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .\backend
+    ports:
+      - 8000:5000
+    volumes:
+      - ./:/backend/app
+
+  mssqldb:
+    build:
+      context: .\data
+    ports:
+      - 1433:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=DevPassword1
