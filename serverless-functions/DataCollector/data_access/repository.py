@@ -11,10 +11,10 @@ from .models import Trend, TrendAggregate, DailyAggregate
 class DataRepo:
    def __init__(self, settings: dict):
       server = settings['DB_HOST']
-      user = settings['DB_USERNAME']
+      username = settings['DB_USERNAME']
       password = settings['DB_PASSWORD']
-      database = 'Youtube_Sentiment_Analysis'
-      self.conn = pymssql.connect(server, user, password, database)
+      database = 'sentiment_app'
+      self.conn = pymssql.connect(host=server, port=1433, user=username, password=password, database=database)
    
    def get_trends_for_past_n_days(self, n_days: int) -> dict:
       """
@@ -35,8 +35,8 @@ class DataRepo:
       """
       cursor = self.conn.cursor()
       for trend in trends:
-         cursor.execute(UPDATE_TREND_DATE, datetime.utcnow(), trend['id'])
-      cursor.commit()
+         cursor.execute(UPDATE_TREND_DATE, (datetime.utcnow(), trend['id']))
+      self.conn.commit()
 
 
    def add_trends(self, trends: List[dict]):
@@ -45,25 +45,25 @@ class DataRepo:
 
       for trend in trends:
          cursor.execute(
-            INSERT_TREND, trend['id'], trend['name'], trend['url'],
+            INSERT_TREND, (trend['id'], trend['name'], trend['url'],
             trend['created_date'], trend['last_used_date'],
-            trend['query'], trend['tweet_volume'], 
+            trend['query'], trend['tweet_volume']) 
          )
 
-      cursor.commit()
+      self.conn.commit()
 
 
    def create_trend_aggregate(self, trend_aggregate: TrendAggregate):
       cursor = self.conn.cursor()
       
       cursor.execute(
-         CREATE_TREND_AGGREGATE, uuid4().hex, trend_aggregate['name'],
+         CREATE_TREND_AGGREGATE, (uuid4().hex, trend_aggregate['name'],
          trend_aggregate['label_1'], trend_aggregate['label_2'], trend_aggregate['label_3'],
          trend_aggregate['label_4'], trend_aggregate['label_5'], trend_aggregate['total_count'],
-         trend_aggregate['trend_id']
+         trend_aggregate['trend_id'])
       )
 
-      cursor.commit()
+      self.conn.commit()
 
 
    def get_aggregate_by_trend_id(self, trend_id: str) -> TrendAggregate:
@@ -77,23 +77,23 @@ class DataRepo:
    def update_trend_aggregate(self, trend_aggregate: TrendAggregate):
       cursor = self.conn.cursor()
       
-      cursor.execute(UPDATE_TREND_AGGREGATE, trend_aggregate['name'],
+      cursor.execute(UPDATE_TREND_AGGREGATE, (trend_aggregate['name'],
       trend_aggregate['label_1'], trend_aggregate['label_2'], trend_aggregate['label_3'],
       trend_aggregate['label_4'], trend_aggregate['label_5'], trend_aggregate['total_count'],
-      trend_aggregate['trend_id'], trend_aggregate['id'])
+      trend_aggregate['trend_id'], trend_aggregate['id']))
 
-      cursor.commit()
+      self.conn.commit()
 
    def create_daily_aggregate(self, daily_aggregate: DailyAggregate):
       cursor = self.conn.cursor()
 
-      cursor.execute(CREATE_DAILY_AGGREGATE, uuid4().hex, daily_aggregate['name'],
+      cursor.execute(CREATE_DAILY_AGGREGATE, (uuid4().hex, daily_aggregate['name'],
       daily_aggregate['tweet_volume'], daily_aggregate['label_1'],
       daily_aggregate['label_2'], daily_aggregate['label_3'],
       daily_aggregate['label_4'], daily_aggregate['label_5'],
-      daily_aggregate['total_count'], daily_aggregate['date'], daily_aggregate['trend_id'])
+      daily_aggregate['total_count'], daily_aggregate['date'], daily_aggregate['trend_id']))
       
-      cursor.commit()
+      self.conn.commit()
 
 
 ### Helpers:

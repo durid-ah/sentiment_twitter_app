@@ -1,7 +1,7 @@
+from DataCollector.data_access.models import TrendAggregate, new_daily_aggregate, new_trend_aggregate, update_labels
+from DataCollector.data_access.repository import DataRepo
 from .twitter_handler import TwitterAPI
-from tweepy import SearchResults
 from .project_utils import get_datetime_from_n_days_ago, strip_down_comment
-from .data_repo import DataRepo, TrendAggregate, new_trend_aggregate, new_daily_aggregate, update_labels
 from fasttext import FastText
 import logging
 
@@ -48,7 +48,8 @@ def analyze_tweets_for_trend(
    
    for page in pages:
       for status in page:
-         if status.created_at <= yesterday:
+         created_date = status.created_at.replace(tzinfo=None) 
+         if created_date <= yesterday:
             break
          else:
             tweet_count += 1
